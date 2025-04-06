@@ -1,2 +1,4 @@
 # Klub_Fitness
-Projekt, Java laboratorium
+Grupa 3
+Nina Kowalczuk
+Projekt: Klub fitness
