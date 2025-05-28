@@ -5,6 +5,8 @@
                              https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 1) Spring Boot Parent -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -13,17 +15,21 @@
     </parent>
 
     <groupId>org.example</groupId>
-    <artifactId>ProjectManagerApp</artifactId>
+    <artifactId>KlubFitness</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>ProjectManagerApp</name>
-    <description>ProjectManagerApp</description>
+    <name>KlubFitness</name>
+    <description>KlubFitness</description>
 
     <properties>
         <java.version>21</java.version>
         <lombok.version>1.18.36</lombok.version>
         <jacoco.version>0.8.10</jacoco.version>
         <testcontainers.version>1.18.1</testcontainers.version>
-        <!-- te dwie właściwości będą wypełniane przez JaCoCo -->
+
+        <!-- Flyway -->
+        <flyway.version>9.22.0</flyway.version>
+
+        <!-- JaCoCo -->
         <surefireArgLine/>
         <failsafeArgLine/>
     </properties>
@@ -39,10 +45,18 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
+        <!-- Flyway Core -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+
         <!-- PostgreSQL driver -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+            <version>42.2.8</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -128,11 +142,10 @@
             </plugin>
 
             <!-- JaCoCo -->
-            <!-- 2) Jacoco: agent + dwa raporty -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.10</version>
+                <version>${jacoco.version}</version>
                 <executions>
                     <!-- agent dla testów jednostkowych -->
                     <execution>
@@ -157,7 +170,6 @@
                         </goals>
                         <phase>pre-integration-test</phase>
                         <configuration>
-                            <!-- oddzielny plik danych dla IT -->
                             <destFile>${project.build.directory}/jacoco-it.exec</destFile>
                             <propertyName>failsafeArgLine</propertyName>
                         </configuration>
@@ -175,6 +187,23 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <!-- Flyway Maven Plugin -->
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>${flyway.version}</version>
+                <configuration>
+                    <driver>org.postgresql.Driver</driver>
+                    <url>jdbc:postgresql://db:5432/klub_fitness</url>
+                    <user>fitnesiara</user>
+                    <password>klubfitness</password>
+                    <table>flyway_schema_history</table>
+                    <locations>
+                        <location>classpath:db/migration</location>
+                    </locations>
+                </configuration>
             </plugin>
 
             <!-- Surefire: unit tests -->
