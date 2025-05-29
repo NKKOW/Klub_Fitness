@@ -61,7 +61,6 @@ public class ReservationController {
                 request.getSessionId()
         );
 
-        // mapujemy wynik na DTO
         ReservationDto response = new ReservationDto(
                 created.getId(),
                 created.getUser().getId(),

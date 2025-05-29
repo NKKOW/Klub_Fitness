@@ -1,3 +1,4 @@
+
 package org.example.klubfitness.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -28,4 +29,15 @@ public class Trainer {
     @JsonIgnore
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<TrainingSession> sessions = new HashSet<>();
+
+    /**
+     * Ten konstruktor jest potrzebny, bo w testach
+     * tworzymy Trainer(null, "A", "X").
+     */
+    public Trainer(Long id, String name, String specialization) {
+        this.id = id;
+        this.name = name;
+        this.specialization = specialization;
+
+    }
 }
