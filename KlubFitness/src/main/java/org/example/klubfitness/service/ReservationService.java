@@ -1,4 +1,3 @@
-// File: src/main/java/org/example/klubfitness/service/ReservationService.java
 package org.example.klubfitness.service;
 
 import lombok.RequiredArgsConstructor;

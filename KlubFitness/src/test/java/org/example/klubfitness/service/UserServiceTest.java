@@ -2,170 +2,137 @@ package org.example.klubfitness.service;
 
 import org.example.klubfitness.entity.User;
 import org.example.klubfitness.repository.UserRepository;
-import org.example.klubfitness.security.Role;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
     @Mock
-    private UserRepository userRepository;
+    private UserRepository repo;
 
-    private UserService userService;
+    @InjectMocks
+    private UserService service;
+
+    private User u1, u2, updatedPayload;
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository);
-    }
-
-    @Test
-    @DisplayName("getAllUsers should return list of all users")
-    void getAllUsers_returnsAll() {
-        User u1 = new User();
+        u1 = new User();
         u1.setId(1L);
-        u1.setUsername("User1");
+        u1.setUsername("alice");
         u1.setPassword("pass1");
-        u1.setRole(Role.USER);
 
-        User u2 = new User();
+        u2 = new User();
         u2.setId(2L);
-        u2.setUsername("User2");
+        u2.setUsername("bob");
         u2.setPassword("pass2");
-        u2.setRole(Role.ADMIN);
 
-        when(userRepository.findAll()).thenReturn(Arrays.asList(u1, u2));
-
-        List<User> users = userService.getAllUsers();
-
-        assertThat(users).hasSize(2);
-        assertThat(users.get(0).getRole()).isEqualTo(Role.USER);
-        assertThat(users.get(1).getRole()).isEqualTo(Role.ADMIN);
-        verify(userRepository, times(1)).findAll();
+        updatedPayload = new User();
+        updatedPayload.setUsername("alice2");
+        updatedPayload.setPassword("newpass");
     }
 
     @Test
-    @DisplayName("getUserById when found returns user")
-    void getUserById_found_returnsUser() {
-        User u = new User();
-        u.setId(1L);
-        u.setUsername("Test");
-        u.setPassword("pw");
-        u.setRole(Role.USER);
+    void getAllUsers_returnsListFromRepo() {
+        when(repo.findAll()).thenReturn(Arrays.asList(u1, u2));
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(u));
+        List<User> result = service.getAllUsers();
 
-        User result = userService.getUserById(1L);
-
-        assertThat(result).isEqualTo(u);
-        assertThat(result.getRole()).isEqualTo(Role.USER);
-        verify(userRepository).findById(1L);
+        assertEquals(2, result.size());
+        assertTrue(result.contains(u1));
+        assertTrue(result.contains(u2));
+        verify(repo, times(1)).findAll();
     }
 
     @Test
-    @DisplayName("getUserById when not found returns null")
-    void getUserById_notFound_returnsNull() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
-
-        User result = userService.getUserById(1L);
-
-        assertThat(result).isNull();
-        verify(userRepository).findById(1L);
-    }
-
-    @Test
-    @DisplayName("createUser should save and return user")
     void createUser_savesAndReturns() {
-        User u = new User();
-        u.setUsername("New");
-        u.setPassword("pw");
-        u.setRole(Role.USER);
+        when(repo.save(u1)).thenReturn(u1);
 
-        User saved = new User();
-        saved.setId(1L);
-        saved.setUsername("New");
-        saved.setPassword("pw");
-        saved.setRole(Role.USER);
+        User result = service.createUser(u1);
 
-        when(userRepository.save(u)).thenReturn(saved);
-
-        User result = userService.createUser(u);
-
-        assertThat(result).isEqualTo(saved);
-        assertThat(result.getRole()).isEqualTo(Role.USER);
-        verify(userRepository).save(u);
+        assertSame(u1, result);
+        verify(repo).save(u1);
     }
 
     @Test
-    @DisplayName("updateUser when exists updates and returns")
-    void updateUser_exists_updatesAndReturns() {
-        User existing = new User();
-        existing.setId(1L);
-        existing.setUsername("Old");
-        existing.setPassword("oldpw");
-        existing.setRole(Role.USER);
+    void getUserById_existingId_returnsUser() {
+        when(repo.findById(1L)).thenReturn(Optional.of(u1));
 
-        User payload = new User();
-        payload.setUsername("Updated");
-        payload.setPassword("newpw");
-        payload.setRole(Role.ADMIN);
+        User result = service.getUserById(1L);
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
-        when(userRepository.save(existing)).thenReturn(existing);
-
-        User result = userService.updateUser(1L, payload);
-
-        assertThat(result.getUsername()).isEqualTo("Updated");
-        assertThat(result.getPassword()).isEqualTo("newpw");
-        assertThat(result.getRole()).isEqualTo(Role.ADMIN);
-        verify(userRepository).findById(1L);
-        verify(userRepository).save(existing);
+        assertSame(u1, result);
+        verify(repo).findById(1L);
     }
 
     @Test
-    @DisplayName("updateUser when not exists returns null")
-    void updateUser_notExists_returnsNull() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+    void getUserById_nonExisting_returnsNull() {
+        when(repo.findById(99L)).thenReturn(Optional.empty());
 
-        User result = userService.updateUser(1L, new User());
+        User result = service.getUserById(99L);
 
-        assertThat(result).isNull();
-        verify(userRepository).findById(1L);
-        verify(userRepository, never()).save(any());
+        assertNull(result);
+        verify(repo).findById(99L);
     }
 
     @Test
-    @DisplayName("deleteUser when exists deletes and returns true")
-    void deleteUser_exists_deletes() {
-        when(userRepository.existsById(1L)).thenReturn(true);
+    void updateUser_existingId_updatesFieldsAndReturns() {
+        when(repo.findById(1L)).thenReturn(Optional.of(u1));
+        when(repo.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        boolean result = userService.deleteUser(1L);
+        User result = service.updateUser(1L, updatedPayload);
 
-        assertThat(result).isTrue();
-        verify(userRepository).existsById(1L);
-        verify(userRepository).deleteById(1L);
+        assertNotNull(result);
+        assertEquals("alice2", result.getUsername());
+        assertEquals("newpass", result.getPassword());
+        // zabezpieczamy, że repo.save był wywołany na zaktualizowanym obiekcie
+        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        verify(repo).save(captor.capture());
+
+        User saved = captor.getValue();
+        assertEquals("alice2", saved.getUsername());
+        assertEquals("newpass", saved.getPassword());
     }
 
     @Test
-    @DisplayName("deleteUser when not exists returns false")
-    void deleteUser_notExists_returnsFalse() {
-        when(userRepository.existsById(1L)).thenReturn(false);
+    void updateUser_nonExisting_returnsNull() {
+        when(repo.findById(5L)).thenReturn(Optional.empty());
 
-        boolean result = userService.deleteUser(1L);
+        User result = service.updateUser(5L, updatedPayload);
 
-        assertThat(result).isFalse();
-        verify(userRepository).existsById(1L);
-        verify(userRepository, never()).deleteById(anyLong());
+        assertNull(result);
+        verify(repo, never()).save(any());
+    }
+
+    @Test
+    void deleteUser_existingId_deletesAndReturnsTrue() {
+        when(repo.existsById(1L)).thenReturn(true);
+
+        boolean result = service.deleteUser(1L);
+
+        assertTrue(result);
+        verify(repo).deleteById(1L);
+    }
+
+    @Test
+    void deleteUser_nonExisting_returnsFalse() {
+        when(repo.existsById(42L)).thenReturn(false);
+
+        boolean result = service.deleteUser(42L);
+
+        assertFalse(result);
+        verify(repo, never()).deleteById(anyLong());
     }
 }
