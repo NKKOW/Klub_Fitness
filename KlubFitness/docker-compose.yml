@@ -4,8 +4,8 @@ services:
     platform: linux/amd64
     environment:
       POSTGRES_DB: klub_fitness
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
+      POSTGRES_USER: fitnesiara
+      POSTGRES_PASSWORD: klubfitness
     ports:
       - "5432:5432"
     volumes:
@@ -20,8 +20,8 @@ services:
     environment:
       SPRING_APPLICATION_NAME: KlubFitness
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/klub_fitness
-      SPRING_DATASOURCE_USERNAME: myuser
-      SPRING_DATASOURCE_PASSWORD: mypassword
+      SPRING_DATASOURCE_USERNAME: fitnesiara
+      SPRING_DATASOURCE_PASSWORD: klubfitness
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
       SERVER_PORT: 8081
