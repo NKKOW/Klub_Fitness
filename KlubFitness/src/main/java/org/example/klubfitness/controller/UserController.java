@@ -1,4 +1,3 @@
-// File: src/main/java/org/example/klubfitness/controller/UserController.java
 package org.example.klubfitness.controller;
 
 import io.swagger.v3.oas.annotations.Operation;

@@ -1,4 +1,3 @@
-// File: src/main/java/org/example/klubfitness/util/strategy/SeasonalDiscountStrategy.java
 package org.example.klubfitness.util.strategy;
 
 import org.example.klubfitness.entity.TrainingSession;
